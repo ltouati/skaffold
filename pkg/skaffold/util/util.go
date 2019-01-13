@@ -213,7 +213,7 @@ func InjectEnvironnmentVariables(pathToSkaffoldFile string, skaffoldConfiguratio
 	}
 	configurationSource.SetDefault("profile", strings.Join(profiles, ","))
 	return ReplaceEnvironmentVariables(configurationSource, skaffoldConfiguration), nil
-
+}
 func CopyStringMap(m map[string]string) map[string]string {
 	cp := make(map[string]string)
 	for k, v := range m {
