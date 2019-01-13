@@ -172,11 +172,13 @@ func ReadEnvironmentConfigProperties(pathToSkaffoldFile string) (*viper.Viper, e
 	directory := filepath.Dir(pathToSkaffoldFile)
 	baseName := filepath.Base(pathToSkaffoldFile)
 	targetDirectory := ""
-	if baseName != "skaffold.yaml" && baseName != "skaffold.yml" {
+	re := regexp.MustCompile("skaffold.*ya?ml")
+	if re.FindString(baseName) == "" {
 		targetDirectory = pathToSkaffoldFile
 	} else {
 		targetDirectory = directory
 	}
+	//
 	logrus.Debugf("Will load environment file from :%s", targetDirectory)
 	ret := viper.New()
 	ret.SetConfigType("yaml")
