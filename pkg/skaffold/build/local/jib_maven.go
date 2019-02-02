@@ -18,9 +18,9 @@ package local
 
 import (
 	"context"
-	"io"
-
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/docker"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/jib"
@@ -46,9 +46,9 @@ func (b *Builder) buildJibMavenToDocker(ctx context.Context, out io.Writer, work
 	}
 
 	skaffoldImage := generateJibImageRef(workspace, artifact.Module)
-	args := generateMavenArgs("dockerBuild", skaffoldImage, artifact)
+	args := jib.GenerateMavenArgs("dockerBuild", skaffoldImage, artifact)
 
-	if err := runMavenCommand(ctx, out, workspace, args); err != nil {
+	if err := b.runMavenCommand(ctx, out, workspace, args); err != nil {
 		return "", err
 	}
 
@@ -65,31 +65,13 @@ func (b *Builder) buildJibMavenToRegistry(ctx context.Context, out io.Writer, wo
 
 	initialTag := util.RandomID()
 	skaffoldImage := fmt.Sprintf("%s:%s", artifact.ImageName, initialTag)
-	args := generateMavenArgs("build", skaffoldImage, artifact.JibMavenArtifact)
+	args := jib.GenerateMavenArgs("build", skaffoldImage, artifact.JibMavenArtifact)
 
-	if err := runMavenCommand(ctx, out, workspace, args); err != nil {
+	if err := b.runMavenCommand(ctx, out, workspace, args); err != nil {
 		return "", err
 	}
 
 	return docker.RemoteDigest(skaffoldImage)
-}
-
-// generateMavenArgs generates the arguments to Maven for building the project as an image called `skaffoldImage`.
-func generateMavenArgs(goal string, imageName string, artifact *latest.JibMavenArtifact) []string {
-	var command []string
-	if artifact.Module == "" {
-		// single-module project
-		command = []string{"--non-recursive", "prepare-package", "jib:" + goal}
-	} else {
-		// multi-module project: we assume `package` is bound to `jib:<goal>`
-		command = []string{"--projects", artifact.Module, "--also-make", "package"}
-	}
-	command = append(command, "-Dimage="+imageName)
-	if artifact.Profile != "" {
-		command = append(command, "--activate-profiles", artifact.Profile)
-	}
-
-	return command
 }
 
 // verifyJibPackageGoal verifies that the referenced module has `package` bound to a single jib goal.
@@ -118,8 +100,9 @@ func verifyJibPackageGoal(ctx context.Context, requiredGoal string, workspace st
 	return nil
 }
 
-func runMavenCommand(ctx context.Context, out io.Writer, workspace string, args []string) error {
+func (b *Builder) runMavenCommand(ctx context.Context, out io.Writer, workspace string, args []string) error {
 	cmd := jib.MavenCommand.CreateCommand(ctx, workspace, args)
+	cmd.Env = append(os.Environ(), b.localDocker.ExtraEnv()...)
 	cmd.Stdout = out
 	cmd.Stderr = out
 

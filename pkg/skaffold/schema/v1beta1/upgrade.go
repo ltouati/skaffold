@@ -21,8 +21,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	next "github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/latest"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/util"
+	next "github.com/GoogleContainerTools/skaffold/pkg/skaffold/schema/v1beta2"
 )
 
 // Upgrade upgrades a configuration to the next version.

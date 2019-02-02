@@ -1,18 +1,18 @@
 
 ---
-title: "Using deployers"
-linkTitle: "Using deployers"
+title: "Deployers"
+linkTitle: "Deployers"
 weight: 20
 ---
 
 This page discusses how to set up Skaffold to use the tool of your choice
 to deploy your app to a Kubernetes cluster.
 
-When skaffold deploys an application the following steps happen: 
+When Skaffold deploys an application the following steps happen: 
 
-* the skaffold deployer _renders_ the final kubernetes manifests: skaffold replaces the image names in the kubernetes manifests with the final tagged image names. 
+* the Skaffold deployer _renders_ the final kubernetes manifests: Skaffold replaces the image names in the kubernetes manifests with the final tagged image names. 
 Also, in case of the more complicated deployers the rendering step involves expanding templates (in case of helm) or calculating overlays (in case of kustomize). 
-* the skaffold deployer _deploys_ the final kubernetes manifests to the cluster
+* the Skaffold deployer _deploys_ the final kubernetes manifests to the cluster
 
 Skaffold supports the following tools for deploying applications:
 
@@ -25,7 +25,7 @@ controls how Skaffold builds artifacts. To use a specific tool for deploying
 artifacts, add the value representing the tool and options for using the tool
 to the `build` section. For a detailed discussion on Skaffold configuration,
 see [Skaffold Concepts: Configuration](/docs/concepts/#configuration) and
-[Skaffold.yaml References](/docs/references/config).
+[Skaffold.yaml References](https://github.com/GoogleContainerTools/skaffold/blob/master/examples/annotated-skaffold.yaml).
 
 ## Deploying with kubectl
 
@@ -41,7 +41,7 @@ To use `kubectl`, add deploy type `kubectl` to the `deploy` section of
 
 |Option|Description|
 |----|----|
-|`manifests`| OPTIONAL. A list of paths to Kubernetes Manifests. Default value is `kubectl`.|
+|`manifests`| OPTIONAL. A list of paths to Kubernetes Manifests. Default value is `k8s/*.yaml`.|
 |`remoteManifests`|OPTIONAL. A list of paths to Kubernetes Manifests in remote clusters.|
 |`flags`| OPTIONAL. Additional flags to pass to `kubectl`. You can specify three types of flags: <ul> <li>`global`: flags that apply to every command.</li> <li>`apply`: flags that apply to creation commands.</li> <li>`delete`: flags that apply to deletion commands.</li><ul>|
 
@@ -51,7 +51,7 @@ artifacts using `kubectl`:
 ```yaml
 deploy:
     kubectl:
-    manifests:
+      manifests:
         - k8s-*
     # Uncomment the following lines to add remote manifests and flags
     # remoteManifests:
@@ -142,21 +142,17 @@ section of `skaffold.yaml`. The `kustomize` type offers the following options:
 
 |Option|Description|
 |----|----|
-|`kustomizePath`| <b>Optional</b> Path to Kustomization files. The default value is `.` (current directory).|
+|`path`| <b>Optional</b> Path to Kustomization files. The default value is `.` (current directory).|
 |`flags`| OPTIONAL. Additional flags to pass to `kubectl`. You can specify three types of flags: <ul> <li>`global`: flags that apply to every command.</li> <li>`apply`: flags that apply to creation commands.</li> <li>`delete`: flags that apply to deletion commands.</li> <ul> |
 
 The following `deploy` section, for example, instructs Skaffold to deploy
 artifacts using kustomize:
 
 ```yaml
-apiVersion: {{< skaffold-version >}}
-   kind: Config
-   deploy:
-     kustomize:
-        kustomizePath: "."
+deploy:
+  kustomize:
+    path: "."
 # The deploy section above is equal to
-# apiVersion: {{< skaffold-version >}}
-#    kind: Config
-#    deploy:
-#      kustomize: {}
+# deploy:
+#   kustomize: {}
 ```

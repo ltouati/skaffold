@@ -10,3 +10,4 @@ docs/resources
 docs/node_modules
 docs/package-lock.json
 bin/
+pkg/skaffold/color/debug.test

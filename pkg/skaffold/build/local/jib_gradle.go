@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/docker"
 	"github.com/GoogleContainerTools/skaffold/pkg/skaffold/jib"
@@ -38,9 +39,9 @@ func (b *Builder) buildJibGradle(ctx context.Context, out io.Writer, workspace s
 
 func (b *Builder) buildJibGradleToDocker(ctx context.Context, out io.Writer, workspace string, artifact *latest.JibGradleArtifact) (string, error) {
 	skaffoldImage := generateJibImageRef(workspace, artifact.Project)
-	args := generateGradleArgs("jibDockerBuild", skaffoldImage, artifact)
+	args := jib.GenerateGradleArgs("jibDockerBuild", skaffoldImage, artifact)
 
-	if err := runGradleCommand(ctx, out, workspace, args); err != nil {
+	if err := b.runGradleCommand(ctx, out, workspace, args); err != nil {
 		return "", err
 	}
 
@@ -50,30 +51,18 @@ func (b *Builder) buildJibGradleToDocker(ctx context.Context, out io.Writer, wor
 func (b *Builder) buildJibGradleToRegistry(ctx context.Context, out io.Writer, workspace string, artifact *latest.Artifact) (string, error) {
 	initialTag := util.RandomID()
 	skaffoldImage := fmt.Sprintf("%s:%s", artifact.ImageName, initialTag)
-	args := generateGradleArgs("jib", skaffoldImage, artifact.JibGradleArtifact)
+	args := jib.GenerateGradleArgs("jib", skaffoldImage, artifact.JibGradleArtifact)
 
-	if err := runGradleCommand(ctx, out, workspace, args); err != nil {
+	if err := b.runGradleCommand(ctx, out, workspace, args); err != nil {
 		return "", err
 	}
 
 	return docker.RemoteDigest(skaffoldImage)
 }
 
-// generateGradleArgs generates the arguments to Gradle for building the project as an image called `skaffoldImage`.
-func generateGradleArgs(task string, imageName string, artifact *latest.JibGradleArtifact) []string {
-	var command string
-	if artifact.Project == "" {
-		command = ":" + task
-	} else {
-		// multi-module
-		command = fmt.Sprintf(":%s:%s", artifact.Project, task)
-	}
-
-	return []string{command, "--image=" + imageName}
-}
-
-func runGradleCommand(ctx context.Context, out io.Writer, workspace string, args []string) error {
+func (b *Builder) runGradleCommand(ctx context.Context, out io.Writer, workspace string, args []string) error {
 	cmd := jib.GradleCommand.CreateCommand(ctx, workspace, args)
+	cmd.Env = append(os.Environ(), b.localDocker.ExtraEnv()...)
 	cmd.Stdout = out
 	cmd.Stderr = out
 

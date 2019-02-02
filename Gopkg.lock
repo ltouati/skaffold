@@ -308,7 +308,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:900b120797732528f188d4cb7485d0a33f40e2867fa7f9086494966ea2203bac"
+  digest = "1:6999705ae5d573f1b6f933d280f5fc2d53448de149c6b2d5710b680dcd7c3ed4"
   name = "github.com/google/go-containerregistry"
   packages = [
     "pkg/authn",
@@ -318,6 +318,7 @@
     "pkg/v1/remote",
     "pkg/v1/remote/transport",
     "pkg/v1/stream",
+    "pkg/v1/tarball",
     "pkg/v1/types",
     "pkg/v1/v1util",
   ]
@@ -493,6 +494,14 @@
   pruneopts = "NUT"
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
   version = "v1.8.0"
+
+[[projects]]
+  digest = "1:27885e80e300ed44b6ccaa01b4db40e155e374ed12410ac1aa8f1fe4cc69b2bf"
+  name = "github.com/krishicks/yaml-patch"
+  packages = ["."]
+  pruneopts = "NUT"
+  revision = "83cc9ac50becbbfafb86a89167f3bc5372e8e530"
+  version = "v0.0.10"
 
 [[projects]]
   digest = "1:08c231ec84231a7e23d67e4b58f975e1423695a32467a362ee55a803f9de8061"
@@ -1290,10 +1299,11 @@
     "github.com/google/go-containerregistry/pkg/name",
     "github.com/google/go-containerregistry/pkg/v1",
     "github.com/google/go-containerregistry/pkg/v1/remote",
-    "github.com/google/go-containerregistry/pkg/v1/remote/transport",
+    "github.com/google/go-containerregistry/pkg/v1/tarball",
     "github.com/google/go-github/github",
     "github.com/imdario/mergo",
     "github.com/karrick/godirwalk",
+    "github.com/krishicks/yaml-patch",
     "github.com/mitchellh/go-homedir",
     "github.com/moby/buildkit/frontend/dockerfile/command",
     "github.com/moby/buildkit/frontend/dockerfile/parser",
@@ -1307,7 +1317,6 @@
     "golang.org/x/crypto/ssh/terminal",
     "golang.org/x/oauth2",
     "golang.org/x/oauth2/google",
-    "golang.org/x/sync/errgroup",
     "google.golang.org/api/cloudbuild/v1",
     "google.golang.org/api/googleapi",
     "google.golang.org/api/iterator",
@@ -1317,7 +1326,6 @@
     "gopkg.in/src-d/go-git.v4/plumbing/object",
     "gopkg.in/yaml.v2",
     "k8s.io/api/apps/v1",
-    "k8s.io/api/batch/v1",
     "k8s.io/api/core/v1",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/api/meta",

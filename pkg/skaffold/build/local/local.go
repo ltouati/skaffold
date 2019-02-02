@@ -77,7 +77,7 @@ func (b *Builder) runBuildForArtifact(ctx context.Context, out io.Writer, artifa
 		return b.buildDocker(ctx, out, artifact.Workspace, artifact.DockerArtifact)
 
 	case artifact.BazelArtifact != nil:
-		return b.buildBazel(ctx, out, artifact.Workspace, artifact.BazelArtifact)
+		return b.buildBazel(ctx, out, artifact.Workspace, artifact)
 
 	case artifact.JibMavenArtifact != nil:
 		return b.buildJibMaven(ctx, out, artifact.Workspace, artifact)
@@ -90,15 +90,20 @@ func (b *Builder) runBuildForArtifact(ctx context.Context, out io.Writer, artifa
 	}
 }
 
-func (b *Builder) retagAndPush(ctx context.Context, out io.Writer, initialTag string, newTag string, artifact *latest.Artifact) error {
-	if b.pushImages && (artifact.JibMavenArtifact != nil || artifact.JibGradleArtifact != nil) {
-		if err := docker.AddTag(initialTag, newTag); err != nil {
+func (b *Builder) retagAndPush(ctx context.Context, out io.Writer, digest string, newTag string, artifact *latest.Artifact) error {
+	if b.pushImages && (artifact.JibMavenArtifact != nil || artifact.JibGradleArtifact != nil || artifact.BazelArtifact != nil) {
+		// when pushing images, jib/bazel build them directly to the registry. all we need to do here is add a tag to the remote.
+
+		// NOTE: the digest returned by the builders when in push mode is the digest of the remote image that was built to the registry.
+		// when adding the tag to the remote, we need to specify the registry it was built to so go-containerregistry knows
+		// where to look when grabbing the remote image reference.
+		if err := docker.AddTag(fmt.Sprintf("%s@%s", artifact.ImageName, digest), newTag); err != nil {
 			return errors.Wrap(err, "tagging image")
 		}
 		return nil
 	}
 
-	if err := b.localDocker.Tag(ctx, initialTag, newTag); err != nil {
+	if err := b.localDocker.Tag(ctx, digest, newTag); err != nil {
 		return err
 	}
 

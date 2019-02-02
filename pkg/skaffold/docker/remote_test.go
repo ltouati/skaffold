@@ -14,25 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package util
+package docker
 
 import (
-	"os/exec"
-	"syscall"
-
-	"github.com/pkg/errors"
+	"strings"
+	"testing"
 )
 
-// IsTerminatedError returns true if the error is type exec.ExitError and the corresponding process was terminated by SIGTERM
-// This error is given when a exec.Command is ran and terminated with a SIGTERM.
-func IsTerminatedError(err error) bool {
-	// unwrap to discover original cause
-	err = errors.Cause(err)
-	exitError, ok := err.(*exec.ExitError)
-	if !ok {
-		return false
+func TestRemoteDigest(t *testing.T) {
+	validReferences := []string{
+		"python",
+		"python:3-slim",
 	}
-	ws := exitError.Sys().(syscall.WaitStatus)
-	signal := ws.Signal()
-	return signal == syscall.SIGTERM || signal == syscall.SIGKILL
+
+	for _, ref := range validReferences {
+		_, err := RemoteDigest(ref)
+
+		// Ignore networking errors
+		if err != nil && strings.Contains(err.Error(), "could not parse") {
+			t.Errorf("unable to parse %q: %v", ref, err)
+		}
+	}
 }
