@@ -37,7 +37,7 @@ func IsSupportedKubernetesFileExtension(n string) bool {
 
 // IsSkaffoldConfig is for determining if a file is skaffold config file.
 func IsSkaffoldConfig(file string) bool {
-	if config, err := schema.ParseConfig(file, false); err == nil && config != nil {
+	if config, err := schema.ParseConfig(file, false, []string{}); err == nil && config != nil {
 		return true
 	}
 	return false

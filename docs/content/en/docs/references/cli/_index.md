@@ -302,8 +302,9 @@ Usage:
   skaffold fix
 
 Flags:
-  -f, --filename string   Filename or URL to the pipeline file (default "skaffold.yaml")
-      --overwrite         Overwrite original config with fixed config
+  -f, --filename string       Filename or URL to the pipeline file (default "skaffold.yaml")
+      --overwrite             Overwrite original config with fixed config
+  -p, --profile stringArray   Activate profiles by name
 
 Global Flags:
       --color int          Specify the default output color in ANSI escape codes (default 34)
@@ -311,7 +312,6 @@ Global Flags:
 
 
 ```
-
 ### skaffold init
 
 Automatically generate Skaffold configuration for deploying an application

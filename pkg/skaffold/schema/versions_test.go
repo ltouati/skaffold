@@ -101,6 +101,34 @@ build:
       path: /kaniko/.docker
 `
 	badConfig = "bad config"
+
+	baseConfig = `
+build:
+  artifacts:
+  - image: image1
+    context: ./image1
+    docker:
+
+  - image: image2
+    context: ./image2
+    sync:
+      'src/**': './src/'
+  - image: image4
+    context: ./image4
+`
+	baseConfigOverride = `
+build:
+  artifacts:
+  - image: image2
+    context: ../examples/getting-started
+    sync:
+      {}
+  - image: image3
+    context: image3-context
+  - image: image4
+    sync:
+     'src/**': './src/'
+  `
 )
 
 func TestParseConfig(t *testing.T) {
@@ -215,7 +243,7 @@ func TestParseConfig(t *testing.T) {
 			yaml := fmt.Sprintf("apiVersion: %s\nkind: Config\n%s", test.apiVersion, test.config)
 			tmp.Write("skaffold.yaml", yaml)
 
-			cfg, err := ParseConfig(tmp.Path("skaffold.yaml"), true)
+			cfg, err := ParseConfig(tmp.Path("skaffold.yaml"), true, []string{"test"})
 			if cfg != nil {
 				config := cfg.(*latest.SkaffoldPipeline)
 				if err := defaults.Set(config); err != nil {
@@ -412,4 +440,29 @@ func TestCantUpgradeFromLatestVersion(t *testing.T) {
 
 	_, err := factory().Upgrade()
 	testutil.CheckError(t, true, err)
+}
+
+func TestApplyProfilesInConfiguration(t *testing.T) {
+	tmp, cleanup := testutil.NewTempDir(t)
+	defer cleanup()
+	yaml := fmt.Sprintf("apiVersion: %s\nkind: Config\n%s", latest.Version, baseConfig)
+	tmp.Write("skaffold.yaml", yaml)
+
+	overridenYaml := fmt.Sprintf("apiVersion: %s\nkind: Config\n%s", latest.Version, baseConfigOverride)
+	tmp.Write("skaffold_test.yaml", overridenYaml)
+	cfg, err := ParseConfig(tmp.Path("skaffold.yaml"), true, []string{"test"})
+	if cfg != nil {
+		config := cfg.(*latest.SkaffoldPipeline)
+		testutil.CheckDeepEqual(t, 4, len(config.Build.Artifacts))
+		testutil.CheckDeepEqual(t, "image1", config.Build.Artifacts[0].ImageName)
+		testutil.CheckDeepEqual(t, "image2", config.Build.Artifacts[1].ImageName)
+		testutil.CheckDeepEqual(t, "image4", config.Build.Artifacts[2].ImageName)
+		testutil.CheckDeepEqual(t, "image3", config.Build.Artifacts[3].ImageName)
+		testutil.CheckDeepEqual(t, "../examples/getting-started", config.Build.Artifacts[1].Workspace)
+		testutil.CheckDeepEqual(t, "image3-context", config.Build.Artifacts[3].Workspace)
+		testutil.CheckDeepEqual(t, 0, len(config.Build.Artifacts[1].Sync))
+		testutil.CheckDeepEqual(t, 1, len(config.Build.Artifacts[2].Sync))
+	} else {
+		t.Fatal("unable to merge config", err)
+	}
 }

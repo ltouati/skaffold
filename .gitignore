@@ -11,4 +11,5 @@ docs/resources
 docs/node_modules
 docs/themes
 docs/package-lock.json
+bin/
 pkg/skaffold/color/debug.test
